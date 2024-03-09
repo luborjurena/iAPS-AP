@@ -965,6 +965,9 @@ Enact a temp Basal or a temp target */
 /* */
 "High" = "High";
 
+/* TIR Chart */
+"Very High" = "Very High";
+
 /* */
 "glucose" = "glucose";
 
@@ -1453,6 +1456,9 @@ Enact a temp Basal or a temp target */
 
 /* Display future data table entries */
 "Show Future" = "Show Future";
+
+/* Hide future data table entries */
+"Hide Future" = "Hide Future";
 
 /* ----------------------- New Bolus Calculator ---------------------------*/
 
