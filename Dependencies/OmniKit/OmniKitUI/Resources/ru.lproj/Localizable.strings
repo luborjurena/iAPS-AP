@@ -814,3 +814,15 @@ Silence Pod" = "Беззвучный Под";
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Получить статус Пода";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Диагностика пода";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Расширенный журнал импульсов";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Прочитать время активации";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Прочитать сработавшие оповещения";

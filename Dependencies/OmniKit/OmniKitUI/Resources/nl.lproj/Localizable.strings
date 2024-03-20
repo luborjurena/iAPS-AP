@@ -814,3 +814,15 @@ Silence Pod" = "Gedempt";
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Lees pompstatus";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Diagnostische Pod gegevens";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Pulslog uitlezen";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Activatietijd lezen";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Lees geactiveerde waarschuwingen";
