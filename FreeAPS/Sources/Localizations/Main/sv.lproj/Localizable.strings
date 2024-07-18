@@ -47,7 +47,7 @@
 "Done" = "Klar";
 
 /* Bolus View footer */
-"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "Senaste loop kördes för %@ minuter sedan. Gör färdigt detta steg eller avbryt/stäng denna vy för att låta nästa loop kunna köras";
+"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "Senast loop var för %@ minuter sedan. Slutför eller stäng denna vy så att nästa loop-cykel kan köras";
 
 /* Calender Option */
 "Display Emojis as Labels" = "Visa Emojis";
@@ -2487,6 +2487,9 @@ Enact a temp Basal or a temp target */
 
 /* UI/UX option */
 "Display Time Interval Setting Button" = "Visa knapp för tidsintervell";
+
+/* UI/UX option */
+"Never display the small glucose chart when scrolling" = "Dölj det lilla glukosdiagrammet när du scrollar";
 
 /* Setting title */
 "Bolus Calculator" = "Boluskalkylator";

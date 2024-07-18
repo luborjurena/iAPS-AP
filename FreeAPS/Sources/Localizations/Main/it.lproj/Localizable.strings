@@ -46,6 +46,9 @@
 /* Button */
 "Done" = "Fine";
 
+/* Bolus View footer */
+"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "L'ultimo ciclo %@ minuti fa. Completa o annulla questa transazione pasto/bolo per consentire che il ciclo successivo venga eseguito";
+
 /* Calender Option */
 "Display Emojis as Labels" = "Visualizza Emoji come etichette";
 
@@ -2485,6 +2488,9 @@ Per gli utenti più giovani si consiglia di iniziare con un dosaggio ancora più
 
 /* UI/UX option */
 "Display Time Interval Setting Button" = "Mostra Pulsante Impostazione nell'intervallo di tempo";
+
+/* UI/UX option */
+"Never display the small glucose chart when scrolling" = "Non visualizzare mai il grafico piccolo del glucosio durante lo scorrimento";
 
 /* Setting title */
 "Bolus Calculator" = "Calcolatore Bolo";

@@ -46,6 +46,9 @@
 /* Button */
 "Done" = "Xong";
 
+/* Bolus View footer */
+"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "Vòng lặp gần nhất %@ phút trước. Hoàn thành hoặc hủy giao dịch bữa ăn/bữa ăn nhanh này để cho phép chạy chu kỳ vòng lặp tiếp theo";
+
 /* Calender Option */
 "Display Emojis as Labels" = "Hiển thị biểu tượng cảm xúc";
 
@@ -2485,6 +2488,9 @@ Enact a temp Basal or a temp target */
 
 /* UI/UX option */
 "Display Time Interval Setting Button" = "Nút cài đặt khoảng thời gian hiển thị";
+
+/* UI/UX option */
+"Never display the small glucose chart when scrolling" = "Không bao giờ hiển thị biểu đồ glucose nhỏ khi cuộn";
 
 /* Setting title */
 "Bolus Calculator" = "Tính toán Bolus";

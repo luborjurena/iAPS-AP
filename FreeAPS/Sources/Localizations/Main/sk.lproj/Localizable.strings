@@ -46,6 +46,9 @@
 /* Button */
 "Done" = "Hotovo";
 
+/* Bolus View footer */
+"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run";
+
 /* Calender Option */
 "Display Emojis as Labels" = "Zobrazenie emotikonov ako štítkov";
 
@@ -2484,6 +2487,9 @@ Enact a temp Basal or a temp target */
 
 /* UI/UX option */
 "Display Time Interval Setting Button" = "Tlačidlo nastavenia časového intervalu zobrazenia";
+
+/* UI/UX option */
+"Never display the small glucose chart when scrolling" = "Never display the small glucose chart when scrolling";
 
 /* Setting title */
 "Bolus Calculator" = "Kalkulátor bolusu";

@@ -46,6 +46,9 @@
 /* Button */
 "Done" = "OK";
 
+/* Bolus View footer */
+"Last loop %@ minutes ago. Complete or cancel this meal/bolus transaction to allow for next loop cycle to run" = "Laatste update is %@ minuten geleden. Voltooi of annuleer deze maaltijd/bolus opdracht om de volgende loopupdate te laten draaien";
+
 /* Calender Option */
 "Display Emojis as Labels" = "Emoji’s als labels weergeven";
 
@@ -257,7 +260,7 @@
 "Autotune" = "Autotune";
 
 /*  */
-"Basal profile" = "Basaal profiel";
+"Basal profile" = "Basaalprofiel";
 
 /*  */
 "Carb ratio" = "Koolhydraat verhouding";
@@ -281,7 +284,7 @@
 "Add" = "Toevoegen";
 
 /*  */
-"Basal Profile" = "Basaal profiel";
+"Basal Profile" = "Basaalprofiel";
 
 /* Rate basal profile */
 "Rate" = "Waarde";
@@ -360,7 +363,7 @@ Enact a temp Basal or a temp target */
 "Invalid URL" = "Ongeldige URL";
 
 /*  */
-"Local glucose source" = "Lokale glucose bron";
+"Local glucose source" = "Lokale glucosebron";
 
 /* Header */
 "Nightscout Config" = "Nightscout instellingen";
@@ -2488,6 +2491,9 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 
 /* UI/UX option */
 "Display Time Interval Setting Button" = "Knop voor tijdinterval weergeven";
+
+/* UI/UX option */
+"Never display the small glucose chart when scrolling" = "Laat de kleine glucosegrafiek nooit zien tijdens het scrollen";
 
 /* Setting title */
 "Bolus Calculator" = "Bolus calculator";
