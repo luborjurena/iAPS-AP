@@ -16,6 +16,10 @@ extension Home {
         @State var triggerUpdate = false
         @State var display = false
         @State var displayGlucose = false
+        @State var animateLoop = Date.distantPast
+        @State var animateTIR = Date.distantPast
+        @State var showBolusActiveAlert = false
+
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
         let viewPadding: CGFloat = 5
 
@@ -44,6 +48,11 @@ extension Home {
             entity: TempTargetsSlider.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
+
+        @FetchRequest(
+            entity: Onboarding.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+        ) var onboarded: FetchedResults<Onboarding>
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -97,7 +106,8 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 alwaysUseColors: $state.alwaysUseColors,
-                displayDelta: $state.displayDelta
+                displayDelta: $state.displayDelta,
+                scrolling: $displayGlucose
             )
             .onTapGesture {
                 if state.alarm == nil {
@@ -304,10 +314,11 @@ extension Home {
                         }.buttonStyle(.borderless)
                         Spacer()
                         Button {
-                            state.showModal(for: .bolus(
-                                waitForSuggestion: state.useCalc ? true : false,
-                                fetch: false
-                            ))
+                            (state.bolusProgress != nil) ? showBolusActiveAlert = true :
+                                state.showModal(for: .bolus(
+                                    waitForSuggestion: state.useCalc ? true : false,
+                                    fetch: false
+                                ))
                         }
                         label: {
                             Image(systemName: "syringe")
@@ -393,11 +404,16 @@ extension Home {
                     state.cancelTempTarget()
                 }
             }
+            .confirmationDialog("Bolus already in Progress", isPresented: $showBolusActiveAlert) {
+                Button("Bolus already in Progress!", role: .cancel) {
+                    showBolusActiveAlert = false
+                }
+            }
         }
 
         var chart: some View {
-            let ratio = state.timeSettings ? 1.73 : 1.56
-            let ratio2 = state.timeSettings ? 1.77 : 1.63
+            let ratio = 1.96
+            let ratio2 = 2.0
 
             return addColouredBackground().shadow(radius: 3, y: 3)
                 .overlay {
@@ -437,6 +453,10 @@ extension Home {
                             Text(NSLocalizedString(" g", comment: "gram of carbs")).font(.statusFont).foregroundStyle(.secondary)
                         }.offset(x: 0, y: 5)
                     }
+
+                    // Instead of Spacer
+                    Text(" ")
+
                     // Insulin on Board
                     HStack {
                         let substance = Double(state.suggestion?.iob ?? 0)
@@ -454,7 +474,7 @@ extension Home {
                         HStack(spacing: 0) {
                             if let loop = state.suggestion, let iob = loop.iob {
                                 Text(
-                                    numberFormatter.string(from: iob as NSNumber) ?? "0"
+                                    targetFormatter.string(from: iob as NSNumber) ?? "0"
                                 ).font(.statusFont).bold()
                             } else {
                                 Text("?").font(.statusFont).bold()
@@ -476,9 +496,29 @@ extension Home {
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .addShadows()
                 .padding(.horizontal, 10)
+                .blur(radius: animateTIRView ? 2 : 0)
                 .onTapGesture {
+                    timeIsNowTIR()
                     state.showModal(for: .statistics)
                 }
+                .overlay {
+                    if animateTIRView {
+                        animation.asAny()
+                    }
+                }
+        }
+
+        var infoPanelView: some View {
+            addBackground()
+                .frame(height: 30)
+                .overlay {
+                    HStack {
+                        info
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 15))
+                .addShadows()
+                .padding(.horizontal, 10)
         }
 
         var activeIOBView: some View {
@@ -521,8 +561,15 @@ extension Home {
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .addShadows()
                 .padding(.horizontal, 10)
+                .blur(radius: animateLoopView ? 2.5 : 0)
                 .onTapGesture {
+                    timeIsNowLoop()
                     state.showModal(for: .statistics)
+                }
+                .overlay {
+                    if animateLoopView {
+                        animation.asAny()
+                    }
                 }
         }
 
@@ -589,46 +636,46 @@ extension Home {
             }
         }
 
-        @ViewBuilder private func headerView(_ geo: GeometryProxy, extra: CGFloat) -> some View {
-            let scrolling: Bool = extra > 0
-            let height: CGFloat = scrolling ? 170 : 170
+        @ViewBuilder private func headerView(_ geo: GeometryProxy) -> some View {
+            let height: CGFloat = displayGlucose ? 140 : 210
             addHeaderBackground()
                 .frame(
-                    height: fontSize < .extraExtraLarge ? height + geo.safeAreaInsets.top + extra : height + 10 + geo
-                        .safeAreaInsets.top + extra
+                    height: fontSize < .extraExtraLarge ? height + geo.safeAreaInsets.top : height + 10 + geo
+                        .safeAreaInsets.top
                 )
-                .clipShape(Rectangle())
                 .overlay {
                     VStack {
                         ZStack {
-                            glucoseView.frame(maxHeight: .infinity, alignment: .center).offset(y: -5)
-                            loopView.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                .padding(.leading, 32).padding(.top, 20)
-                            HStack {
-                                carbsAndInsulinView
-                                    .frame(maxHeight: .infinity, alignment: .bottom)
-                                Spacer()
-                                pumpView
-                                    .frame(maxHeight: .infinity, alignment: .bottom)
+                            if !displayGlucose {
+                                glucoseView.frame(maxHeight: .infinity, alignment: .center).offset(y: -10)
+                                loopView.frame(maxWidth: .infinity, alignment: .leading).offset(x: 40, y: -30)
                             }
-                            .dynamicTypeSize(...DynamicTypeSize.xLarge)
-                            .padding(.horizontal, 10)
+                            if displayGlucose {
+                                glucoseView.frame(maxHeight: .infinity, alignment: .center).offset(y: -10)
+                            } else {
+                                HStack {
+                                    carbsAndInsulinView
+                                        .frame(maxHeight: .infinity, alignment: .bottom)
+                                    Spacer()
+                                    pumpView
+                                        .frame(maxHeight: .infinity, alignment: .bottom)
+                                }
+                                .dynamicTypeSize(...DynamicTypeSize.xLarge)
+                                .padding(.horizontal, 10)
+                                .padding(.bottom, 5)
+                            }
                         }
-                        // Small glucose View, past 24 hours.
-                        if displayGlucose { glucoseHeaderView() }
 
-                        if !scrolling {
-                            infoPanel
+                        if displayGlucose {
+                            glucosePreview
+                        } else {
+                            infoPanelView
                         }
+
+                        Divider()
+
                     }.padding(.top, geo.safeAreaInsets.top)
                 }
-        }
-
-        @ViewBuilder private func glucoseHeaderView() -> some View {
-            ZStack {
-                glucosePreview
-                    .dynamicTypeSize(...DynamicTypeSize.medium)
-            }
         }
 
         var glucosePreview: some View {
@@ -652,28 +699,22 @@ extension Home {
                 )
                 .symbolSize(5)
             }
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
-                    AxisValueLabel(
-                        format: .dateTime.hour(.defaultDigits(amPM: .omitted))
-                            .locale(Locale(identifier: "sv"))
-                    )
-                    AxisGridLine()
-                }
-            }
+            .chartXAxis(.hidden)
             .chartYAxis {
                 AxisMarks(values: .automatic(desiredCount: 3))
             }
             .chartYScale(
-                domain: minimumRange * (state.units == .mmolL ? 0.0555 : 1.0) ... maximum * (state.units == .mmolL ? 0.0555 : 1.0)
+                domain: minimumRange * (state.units == .mmolL ? 0.0555 : 1.0) ... maximum *
+                    (state.units == .mmolL ? 0.0555 : 1.0)
             )
             .chartXScale(
                 domain: Date.now.addingTimeInterval(-1.days.timeInterval) ... Date.now
             )
-            .frame(height: 70)
+            .frame(height: 50)
             .padding(.leading, 30)
             .padding(.trailing, 32)
             .padding(.top, 15)
+            .dynamicTypeSize(DynamicTypeSize.medium ... DynamicTypeSize.large)
         }
 
         var timeSetting: some View {
@@ -681,6 +722,7 @@ extension Home {
             return Menu(string) {
                 Button("3 " + NSLocalizedString("hours", comment: ""), action: { state.hours = 3 })
                 Button("6 " + NSLocalizedString("hours", comment: ""), action: { state.hours = 6 })
+                Button("9 " + NSLocalizedString("hours", comment: ""), action: { state.hours = 9 })
                 Button("12 " + NSLocalizedString("hours", comment: ""), action: { state.hours = 12 })
                 Button("24 " + NSLocalizedString("hours", comment: ""), action: { state.hours = 24 })
                 Button("UI/UX Settings", action: { state.showModal(for: .statisticsConfig) })
@@ -692,68 +734,105 @@ extension Home {
             .background(TimeEllipse(characters: string.count))
         }
 
+        private var animateLoopView: Bool {
+            -1 * animateLoop.timeIntervalSinceNow < 1.5
+        }
+
+        private var animateTIRView: Bool {
+            -1 * animateTIR.timeIntervalSinceNow < 1.5
+        }
+
+        private func timeIsNowLoop() {
+            animateLoop = Date.now
+        }
+
+        private func timeIsNowTIR() {
+            animateTIR = Date.now
+        }
+
+        private var animation: any View {
+            ActivityIndicator(isAnimating: .constant(true), style: .large)
+        }
+
         var body: some View {
             GeometryReader { geo in
-                VStack(spacing: 0) {
-                    // Header View
-                    headerView(geo, extra: (displayGlucose && !state.skipGlucoseChart) ? 59 : 0)
-                    ScrollView {
-                        VStack {
-                            // Main Chart
-                            chart
-                            // Adjust hours visible (X-Axis)
-                            if state.timeSettings, !displayGlucose { timeSetting }
-                            // TIR Chart
-                            preview.padding(.top, (state.timeSettings && !displayGlucose) ? 5 : 15)
-                            // Loops Chart
-                            loopPreview.padding(.vertical, 15)
-                            // COB Chart
-                            if state.carbData > 0 {
-                                activeCOBView
-                            }
-                            // IOB Chart
-                            if state.iobs > 0 {
-                                activeIOBView.padding(.top, state.carbData > 0 ? viewPadding : 0)
-                            }
-                        }.background {
-                            // Track vertical scroll
-                            GeometryReader { proxy in
-                                let scrollPosition = proxy.frame(in: .named("HomeScrollView")).minY
-                                let yThreshold: CGFloat = state.timeSettings ? -500 : -560
-                                Color.clear
-                                    .onChange(of: scrollPosition) { y in
-                                        if y < yThreshold, state.iobs > 0 || state.carbData > 0, !state.skipGlucoseChart {
-                                            withAnimation(.easeOut(duration: 0.3)) { displayGlucose = true }
-                                        } else {
-                                            withAnimation(.easeOut(duration: 0.4)) { displayGlucose = false }
-                                        }
-                                    }
-                            }
-                        }
+                if onboarded.first?.firstRun ?? true, let openAPSSettings = state.openAPSSettings {
+                    /// If old iAPS user pre v5.7.1 OpenAPS settings will be reset, but can be restored in View below
+                    importResetSettingsView(settings: openAPSSettings)
+                } else {
+                    VStack(spacing: 0) {
+                        // Header View
+                        headerView(geo)
 
-                    }.coordinateSpace(name: "HomeScrollView")
-                    // Buttons
-                    buttonPanel(geo)
-                }
-                .background(
-                    colorScheme == .light ? .gray.opacity(IAPSconfig.backgroundOpacity * 2) : .white
-                        .opacity(IAPSconfig.backgroundOpacity * 2)
-                )
-                .ignoresSafeArea(edges: .vertical)
-                .overlay {
-                    if let progress = state.bolusProgress, let amount = state.bolusAmount {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(.gray.opacity(0.8))
-                                .frame(width: 320, height: 60)
-                            bolusProgressView(progress: progress, amount: amount)
+                        ScrollView {
+                            VStack {
+                                // Main Chart
+                                chart
+                                // Adjust hours visible (X-Axis)
+                                timeSetting
+                                // TIR Chart
+                                if !state.glucose.isEmpty {
+                                    preview.padding(.top, 15)
+                                }
+                                // Loops Chart
+                                loopPreview.padding(.vertical, 15)
+
+                                if state.carbData > 0 {
+                                    activeCOBView
+                                }
+
+                                // IOB Chart
+                                if state.iobs > 0 {
+                                    activeIOBView
+                                }
+
+                            }.background {
+                                // Track vertical scroll
+                                GeometryReader { proxy in
+                                    let scrollPosition = proxy.frame(in: .named("HomeScrollView")).minY
+                                    let yThreshold: CGFloat = -550
+                                    Color.clear
+                                        .onChange(of: scrollPosition) { y in
+                                            if y < yThreshold, state.iobs > 0 || state.carbData > 0, !state.skipGlucoseChart {
+                                                withAnimation(.easeOut(duration: 0.3)) { displayGlucose = true }
+                                            } else {
+                                                withAnimation(.easeOut(duration: 0.4)) { displayGlucose = false }
+                                            }
+                                        }
+                                }
+                            }
+
+                        }.coordinateSpace(name: "HomeScrollView")
+                        // Buttons
+                        buttonPanel(geo)
+                    }
+
+                    .background(
+                        colorScheme == .light ? .gray.opacity(IAPSconfig.backgroundOpacity * 2) : .white
+                            .opacity(IAPSconfig.backgroundOpacity * 2)
+                    )
+                    .ignoresSafeArea(edges: .vertical)
+                    .overlay {
+                        if let progress = state.bolusProgress, let amount = state.bolusAmount {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(.gray.opacity(0.8))
+                                    .frame(width: 320, height: 60)
+                                bolusProgressView(progress: progress, amount: amount)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .offset(x: 0, y: -100)
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .offset(x: 0, y: -100)
                     }
                 }
             }
-            .onAppear(perform: configureView)
+            .onAppear {
+                if onboarded.first?.firstRun ?? true {
+                    state.fetchPreferences()
+                }
+
+                configureView()
+            }
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
@@ -776,7 +855,6 @@ extension Home {
                             }
                     )
             }
-            .onAppear(perform: configureView)
         }
 
         private var popup: some View {
@@ -803,6 +881,13 @@ extension Home {
                     Text("SMBs and High Temps Disabled.").font(.suggestionParts).foregroundColor(.white).padding(.bottom, 4)
                 }
             }
+        }
+
+        private func importResetSettingsView(settings: Preferences) -> some View {
+            Restore.RootView(
+                resolver: resolver,
+                openAPS: settings
+            )
         }
     }
 }

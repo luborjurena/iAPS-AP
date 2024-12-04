@@ -15,6 +15,13 @@ extension Settings {
             )
         ) var fetchedVersionNumber: FetchedResults<VNr>
 
+        @FetchRequest(
+            entity: OverridePresets.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
+                format: "name != %@", "" as String
+            )
+        ) var fetchedProfiles: FetchedResults<OverridePresets>
+
         var body: some View {
             Form {
                 Section {
@@ -63,7 +70,7 @@ extension Settings {
 
                 Section {
                     Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
-                    Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
+                    Text("Basal Profile").navigationLink(to: .basalProfileEditor(saveNewConcentration: false), from: self)
                     Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
                     Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
@@ -83,6 +90,18 @@ extension Settings {
                     Text("Sharing").navigationLink(to: .sharing, from: self)
                     Text("Contact Image").navigationLink(to: .contactTrick, from: self)
                 } header: { Text("Extra Features") }
+
+                Section {
+                    HStack {
+                        Picker("Treatment", selection: $state.profileID) {
+                            Text("Default  📉").tag("Hypo Treatment")
+                            ForEach(fetchedProfiles) { item in
+                                Text(item.name ?? "").tag(item.id?.string ?? "")
+                            }
+                            Text("None").tag("None")
+                        }
+                    }
+                } header: { Text("Hypo Treatment") }
 
                 Section {
                     Toggle("Debug options", isOn: $state.debugOptions)
@@ -106,6 +125,10 @@ extension Settings {
 
                             HStack {
                                 Toggle("Ignore flat CGM readings", isOn: $state.disableCGMError)
+                            }
+
+                            HStack {
+                                Toggle("Allow diluted insulin concentration settings", isOn: $state.allowDilution)
                             }
                         }
                         Group {
