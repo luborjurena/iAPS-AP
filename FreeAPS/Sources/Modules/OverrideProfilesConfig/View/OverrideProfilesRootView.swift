@@ -174,21 +174,23 @@ extension OverrideProfilesConfig {
                                 Text("Disable SMBs")
                             }
                         }
-                        HStack {
-                            Toggle(isOn: $state.smbIsAlwaysOff) {
-                                Text("Schedule when SMBs are Off")
-                            }.disabled(!state.smbIsOff)
-                        }
-                        if state.smbIsAlwaysOff {
+                        if state.smbIsOff {
                             HStack {
-                                Text("First Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.start, formatter: formatter, liveEditing: true)
-                                Text("hour").foregroundColor(.secondary)
+                                Toggle(isOn: $state.smbIsAlwaysOff) {
+                                    Text("Schedule when SMBs are Off")
+                                }.disabled(!state.smbIsOff)
                             }
-                            HStack {
-                                Text("Last Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.end, formatter: formatter, liveEditing: true)
-                                Text("hour").foregroundColor(.secondary)
+                            if state.smbIsAlwaysOff {
+                                HStack {
+                                    Text("First Hour SMBs are Off (24 hours)")
+                                    DecimalTextField("0", value: $state.start, formatter: formatter, liveEditing: true)
+                                    Text("hour").foregroundColor(.secondary)
+                                }
+                                HStack {
+                                    Text("Last Hour SMBs are Off (24 hours)")
+                                    DecimalTextField("0", value: $state.end, formatter: formatter, liveEditing: true)
+                                    Text("hour").foregroundColor(.secondary)
+                                }
                             }
                         }
                         HStack {
@@ -785,7 +787,6 @@ extension OverrideProfilesConfig {
             return nil
         }
 
-        /// Round to two fraction digits
         private func bool(bool: Bool, setting: Bool, label: String) -> AnyView? {
             if bool != setting {
                 return Text(label + (bool ? "on" : "off")).foregroundStyle(.white).boolTag(bool).asAny()
@@ -811,6 +812,7 @@ extension OverrideProfilesConfig {
             return nil
         }
 
+        /// Round to two fraction digits
         private func round(_ decimal: Decimal) -> Decimal {
             decimal.rounded(to: 2)
         }
