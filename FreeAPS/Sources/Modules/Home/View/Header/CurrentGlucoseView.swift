@@ -11,6 +11,9 @@ struct CurrentGlucoseView: View {
     @Binding var displayDelta: Bool
     @Binding var scrolling: Bool
     @Binding var displayExpiration: Bool
+    @Binding var cgm: CGMType
+    @Binding var sensordays: Double
+    @Binding var anubis: Bool
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.sizeCategory) private var fontSize
@@ -70,10 +73,17 @@ struct CurrentGlucoseView: View {
         return formatter
     }
 
-    private var daysFormatter: DateComponentsFormatter {
+    private var remainingTimeFormatter: DateComponentsFormatter {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.day, .hour]
         formatter.unitsStyle = .abbreviated
+        return formatter
+    }
+
+    private var remainingTimeFormatterDays: DateComponentsFormatter {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day]
+        formatter.unitsStyle = .short
         return formatter
     }
 
@@ -87,7 +97,7 @@ struct CurrentGlucoseView: View {
             if let recent = recentGlucose {
                 if displayDelta, !scrolling, let deltaInt = delta,
                    !(units == .mmolL && abs(deltaInt) <= 1) { deltaView(deltaInt) }
-                if displayExpiration {
+                if displayExpiration || anubis {
                     sageView
                 }
                 VStack(spacing: 15) {
@@ -132,13 +142,19 @@ struct CurrentGlucoseView: View {
     private var sageView: some View {
         ZStack {
             if let date = recentGlucose?.sessionStartDate {
-                let timeAgo: TimeInterval = -1 * date.timeIntervalSinceNow
-                LoopEllipse(stroke: colorScheme == .dark ? Color(.systemGray3) : Color(.systemGray6))
+                let expiration = (cgm == .xdrip || cgm == .glucoseDirect) ? sensordays * 8.64E4 : cgm.expiration
+                let remainingTime: TimeInterval = anubis ? (-1 * date.timeIntervalSinceNow) : expiration -
+                    (-1 * date.timeIntervalSinceNow)
+
+                Sage(amount: remainingTime, expiration: anubis ? remainingTime : expiration)
                     .frame(width: 59, height: 26)
                     .overlay {
                         HStack {
                             Text(
-                                (daysFormatter.string(from: timeAgo) ?? "").trimmingCharacters(in: .whitespaces)
+                                remainingTime >= 2 * 8.64E4 ?
+                                    (remainingTimeFormatterDays.string(from: remainingTime) ?? "")
+                                    .replacingOccurrences(of: ",", with: " ") :
+                                    (remainingTimeFormatter.string(from: remainingTime) ?? "")
                                     .replacingOccurrences(of: ",", with: " ")
                             )
                         }
